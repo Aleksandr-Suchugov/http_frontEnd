@@ -3,20 +3,20 @@ export default class API {
     this.widget = widget;
   }
 
-  controlButtons(ticketObj, serverUrl) { 
-    const ticketForm = this.widget.querySelector(`[data-id=${ticketObj.type}-form]`);
+  controlButtons(ticket, type, serverURL) { 
+    const ticketForm = this.widget.querySelector(`[data-id=${type}-form]`);
     const submitBtn = ticketForm.querySelector('[data-id=ok]');
-    ticketForm.addEventListener('submit', (ev) => {
+    submitBtn.addEventListener('submit', (ev) => {
       ev.preventDefault();
-      if (ticketObj.name === '') return;
+      if (ticket.name === '') return;
       const formData = new FormData();
-      formData.append('id', ticketObj.id);
-      formData.append('name', ticketObj.name);
-      formData.append('description', ticketObj.description);
-      formData.append('status', ticketObj.status);
+      formData.append('id', ticket.id);
+      formData.append('name', ticket.name);
+      formData.append('description', ticket.description);
+      formData.append('status', ticket.status);
       formData.append('created', new Date().toLocaleString());
   
-      const TicketUrl = `${serverUrl}/?method=${ticketObj.type}`;
+      const TicketUrl = `${serverURL}/?method=${type}`;
       const xhr = new XMLHttpRequest();
       xhr.open('POST', TicketUrl);
       document.body.style.cursor = 'wait';
@@ -36,7 +36,7 @@ export default class API {
         }
       });
       xhr.send(formData);
-      if (ticketObj.type !== 'removeTicket') ticketForm.reset();
+      if (type !== 'removeTicket') ticketForm.reset();
       this.widget.remove();
     });
 
@@ -47,9 +47,9 @@ export default class API {
     });
   }
 
-  addTicketDescription(selectedTicket, serverUrl) {
+  addTicketDescription(ticket, serverURL) {
     const inputField = this.widget.querySelector('[data-id=description]');
-    const ticketUrl = `${serverUrl}/?method=ticketById&id=${selectedTicket.dataset.id}`;
+    const ticketUrl = `${serverURL}/?method=ticketById&id=${ticket.id}`;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', ticketUrl);
     xhr.addEventListener('load', () => {
@@ -67,14 +67,14 @@ export default class API {
     xhr.send();
   }
 
-  showDescription(selectedTicket, ticketObj, serverUrl) {
+  showDescription(checkBox, ticket, serverURL) {
     if (this.widget.querySelector('.modal')) return;
-    if (!ticketObj.description.classList.contains('hidden')) {
-      ticketObj.description.classList.add('hidden');
+    if (!checkBox.classList.contains('hidden')) {
+      checkBox.classList.add('hidden');
       return;
     }
 
-    const ticketURL = `${serverUrl}/?method=ticketById&id=${selectedTicket.dataset.id}`;
+    const ticketURL = `${serverURL}/?method=ticketById&id=${ticket.id}`;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', ticketURL);
     document.body.style.cursor = 'wait';
@@ -87,8 +87,8 @@ export default class API {
             document.body.style.cursor = '';
           }, 1000);
           if (!recievedDescription) return;
-          ticketObj.description.textContent = recievedDescription;
-          ticketObj.description.classList.toggle('hidden');
+          ticket.description.textContent = recievedDescription;
+          ticket.description.classList.toggle('hidden');
         } catch (e) {
           console.error(e);
         }
@@ -96,5 +96,44 @@ export default class API {
     });
 
     xhr.send();
+  }
+
+  changeStatus(checkBox, ticket, serverURL) {
+    if (this.widget.querySelector('.modal')) return;
+    let status;
+    switch (ticket.status) {
+      case 'in progress': 
+        status = false;
+        checkBox.classList.add('hidden');
+      break;
+      case 'fixed':
+        status = true;
+        checkBox.classList.remove('hidden');
+      break;
+    }
+    const formData = new FormData();
+    formData.append('id', ticket.id);
+    formData.append('status', status);
+  
+    const ticketURL = `${serverURL}/?method=changeTicketStatus`;
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', ticketURL);
+    document.body.style.cursor = 'wait';
+  
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          // console.log('ticket status changed');
+          setTimeout(() => {
+            document.body.style.cursor = '';
+          }, 500);
+        } catch (e) {
+          console.error(e);
+          // throw e;
+        }
+      }
+    });
+  
+    xhr.send(formData);
   }
 }
