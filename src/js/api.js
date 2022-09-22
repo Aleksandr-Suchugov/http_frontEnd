@@ -1,11 +1,8 @@
 export default class API {
-  constructor(widget) {
-    this.widget = widget;
-  }
-
-  controlButtons(ticket, type, serverURL) { 
-    const ticketForm = this.widget.querySelector(`[data-id=${type}-form]`);
-    const submitBtn = ticketForm.querySelector('[data-id=ok]');
+  static controlButtons(ticket, type, serverURL) {
+    const modal = document.querySelector('.modal');
+    const form = document.querySelector('.widget-form');
+    const submitBtn = document.querySelector('button[data-id=ok]');
     submitBtn.addEventListener('submit', (ev) => {
       ev.preventDefault();
       if (ticket.name === '') return;
@@ -15,19 +12,19 @@ export default class API {
       formData.append('description', ticket.description);
       formData.append('status', ticket.status);
       formData.append('created', new Date().toLocaleString());
-  
-      const TicketUrl = `${serverURL}/?method=${type}`;
+
+      const ticketURL = `${serverURL}/?method=${type}`;
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', TicketUrl);
+      xhr.open('POST', ticketURL);
       document.body.style.cursor = 'wait';
-      this.widget.style.cursor = 'wait';
-  
+      document.style.cursor = 'wait';
+
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             setTimeout(() => {
               document.body.style.cursor = '';
-              this.widget.style.cursor = '';
+              document.style.cursor = '';
               document.location.reload();
             }, 1000);
           } catch (e) {
@@ -36,22 +33,21 @@ export default class API {
         }
       });
       xhr.send(formData);
-      if (type !== 'removeTicket') ticketForm.reset();
-      this.widget.remove();
+      modal.remove();
     });
 
-    const cancelBtn = ticketForm.querySelector('[data-id=cancel]');
-    cancelBtn.addEventListener('click', () => {
-      ticketForm.reset();
-      this.widget.remove();
+    const cancelBtn = document.querySelector('button[data-id=cancel]');
+    cancelBtn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      modal.remove();
     });
   }
 
-  addTicketDescription(ticket, serverURL) {
-    const inputField = this.widget.querySelector('[data-id=description]');
-    const ticketUrl = `${serverURL}/?method=ticketById&id=${ticket.id}`;
+  static addTicketDescription(ticket, serverURL) {
+    const inputField = document.querySelector('[data-id=editTicket]');
+    const ticketURL = `${serverURL}/?method=ticketById&id=${ticket.id}`;
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', ticketUrl);
+    xhr.open('GET', ticketURL);
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -63,12 +59,12 @@ export default class API {
         }
       }
     });
-  
+
     xhr.send();
   }
 
-  showDescription(checkBox, ticket, serverURL) {
-    if (this.widget.querySelector('.modal')) return;
+  static showDescription(checkBox, ticket, serverURL) {
+    if (document.querySelector('.modal')) return;
     if (!checkBox.classList.contains('hidden')) {
       checkBox.classList.add('hidden');
       return;
@@ -98,28 +94,31 @@ export default class API {
     xhr.send();
   }
 
-  changeStatus(checkBox, ticket, serverURL) {
-    if (this.widget.querySelector('.modal')) return;
+  static changeStatus(checkBox, ticket, serverURL) {
+    if (document.querySelector('.modal')) return;
     let status;
     switch (ticket.status) {
-      case 'in progress': 
+      case 'in progress':
         status = false;
         checkBox.classList.add('hidden');
-      break;
+        break;
       case 'fixed':
         status = true;
         checkBox.classList.remove('hidden');
-      break;
+        break;
+      default:
+        console.error('Change status function failes..');
+        return;
     }
     const formData = new FormData();
     formData.append('id', ticket.id);
     formData.append('status', status);
-  
+
     const ticketURL = `${serverURL}/?method=changeTicketStatus`;
     const xhr = new XMLHttpRequest();
     xhr.open('POST', ticketURL);
     document.body.style.cursor = 'wait';
-  
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -129,11 +128,10 @@ export default class API {
           }, 500);
         } catch (e) {
           console.error(e);
-          // throw e;
         }
       }
     });
-  
+
     xhr.send(formData);
   }
 }

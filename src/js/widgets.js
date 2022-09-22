@@ -1,16 +1,16 @@
 export default class Widgets {
-  constructor() {
-    this.newTicketHTML = `
-    <div data-widget="addTicket" class="modal widget-add">
+  static newTicketHTML() {
+    return `
+    <div data-widget="addTicket" class="modal widget-add" encType="multipart/form-data">
       <h2>Создать запрос</h2>  
       <form data-id="addTicket-form" class="widget-form">
         <label>
           Имя запроса
-            <textarea rows=1 data-id="name" name="name" required class="widget-input"></textarea>
+          <textarea rows=1 data-id="name" name="name" required class="widget-input"></textarea>
         </label>
         <label>
           Детали запроса
-            <textarea rows=3 data-id="description" name="description" class="widget-input"></textarea>
+          <textarea rows=3 data-id="description" name="description" class="widget-input"></textarea>
         </label>
         <div class="widget-form-controls">
           <button data-id="cancel" class="widget-button">Отменить</button>  
@@ -18,8 +18,10 @@ export default class Widgets {
         </div>     
       </form>
     </div>`;
+  }
 
-    this.removeTicketHTML = `
+  static removeTicketHTML() {
+    return `
     <div data-widget="removeTicket" class="modal widget-remove">
       <h2>Хотите закрыть запрос?</h2>  
       <div class="widget-form">
@@ -29,11 +31,13 @@ export default class Widgets {
         </div> 
       </div>
     </div>`;
+  }
 
-    this.editTicketHTML = `
+  static editTicketHTML() {
+    return `
     <div data-widget="editTicket" class="modal widget-edit">
       <h2>Редактировать тикет</h2>  
-      <form data-id="editTicket-form" class="widget-form">
+      <form data-id="editTicket-form" class="widget-form" encType="multipart/form-data">
         <label>
           Краткое описание
             <textarea rows=1 data-id="name" name="name" required class="widget-input"></textarea>
@@ -50,7 +54,7 @@ export default class Widgets {
     </div>`;
   }
 
-  getTicketHTML(ticket) {
+  static getTicketHTML(ticket) {
     return `
     <div data-id="${ticket.id}" class="ticket-wrapper">
       <div class="ticket-body">
@@ -68,7 +72,7 @@ export default class Widgets {
           <span>&#10006;</span>
         </div>
       </div>
-      <div class="ticket-description hidden"><p></p></div>
+      <div class="ticket-description hidden"><p>${ticket.description}</p></div>
     </div>`;
   }
 }
